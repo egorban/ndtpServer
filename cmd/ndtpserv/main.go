@@ -2,8 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/egorban/ndtpSever/pkg/ndtpserv"
-	//"../../pkg/ndtpserv"
+	"github.com/egorban/ndtpServer/pkg/ndtpserv"
 )
 
 func main() {
