@@ -168,7 +168,6 @@ func receiveData(conn net.Conn, connNo uint64, numPacketsToReceive int, res *Res
 			err = send(conn, reply)
 			if err != nil {
 				log.Printf(" error while send response to %d: %v", connNo, err)
-				restBuf = []byte{}
 				break
 			}
 			log.Printf("send reply: %s", parsedPacket.String())
