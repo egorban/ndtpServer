@@ -33,7 +33,8 @@ func Start(listenPort string, mode int, num int) {
 		return
 	}
 	defer l.Close()
-	log.Printf("ndtp server start at mode %d, listening %s", mode, listenAddress)
+	log.Printf("NDTP server was started. Listen address: %v; Mode: %d; Number packets to receive: %v",
+		listenAddress, mode, num)
 	newConnChan = make(chan uint64)
 	closeConn = make(chan Result)
 	go func() {
@@ -53,8 +54,9 @@ func Start(listenPort string, mode int, num int) {
 		}
 	}()
 	results := waitStop()
+	log.Printf("NDTP server was stopped")
 	for _, r := range results {
-		log.Printf("For connection %d: number receive packets = %d, number control packets = %d",
+		log.Printf("For connection %d: number received data packets = %d, number receive control packets = %d",
 			r.numConn, r.numReceive, r.numControl)
 	}
 }
