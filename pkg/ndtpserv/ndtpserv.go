@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"time"
+	"sync"
 )
 
 type Result struct {
@@ -14,6 +15,8 @@ type Result struct {
 }
 
 var (
+    running bool
+    muRun    sync.Mutex
 	newConnChan   chan uint64
 	closeConn     chan Result
 	controlPacket = []byte{126, 126, 12, 0, 2, 0, 37, 196, 2, 0, 0, 0, 0, 0, 0, 0, 0, 110, 0, 1, 0, 0, 0, 0, 0, 6, 0}
@@ -32,6 +35,7 @@ func Start(listenPort string, mode int, num int) {
 		log.Printf("error while listening: %s", err)
 		return
 	}
+	running = true
 	defer l.Close()
 	log.Printf("NDTP server was started. Listen address: %v; Mode: %d; Number packets to receive: %v",
 		listenAddress, mode, num)
@@ -43,6 +47,11 @@ func Start(listenPort string, mode int, num int) {
 			log.Printf("wait accept...")
 			c, err := l.Accept()
 			if err != nil {
+			    muRun.Lock()
+            	if !running {
+            	    return
+            	}
+            	muRun.Unlock()
 				log.Printf("error while accepting: %s", err)
 				return
 			}
@@ -54,9 +63,12 @@ func Start(listenPort string, mode int, num int) {
 		}
 	}()
 	results := waitStop()
+	muRun.Lock()
+	running = false
+    muRun.Unlock()
 	log.Printf("NDTP server was stopped")
 	for _, r := range results {
-		log.Printf("For connection %d: number received data packets = %d, number receive control packets = %d",
+		log.Printf("For connection %d: number received data packets = %d, sent %d control packets",
 			r.numConn, r.numReceive, r.numControl)
 	}
 }
