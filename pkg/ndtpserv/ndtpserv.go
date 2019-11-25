@@ -4,8 +4,8 @@ import (
 	"github.com/ashirko/navprot/pkg/ndtp"
 	"log"
 	"net"
-	"time"
 	"sync"
+	"time"
 )
 
 type Result struct {
@@ -15,8 +15,8 @@ type Result struct {
 }
 
 var (
-    running bool
-    muRun    sync.Mutex
+	running       bool
+	muRun         sync.Mutex
 	newConnChan   chan uint64
 	closeConn     chan Result
 	controlPacket = []byte{126, 126, 12, 0, 2, 0, 37, 196, 2, 0, 0, 0, 0, 0, 0, 0, 0, 110, 0, 1, 0, 0, 0, 0, 0, 6, 0}
@@ -47,11 +47,12 @@ func Start(listenPort string, mode int, num int) {
 			log.Printf("wait accept...")
 			c, err := l.Accept()
 			if err != nil {
-			    muRun.Lock()
-            	if !running {
-            	    return
-            	}
-            	muRun.Unlock()
+				muRun.Lock()
+				if !running {
+					muRun.Unlock()
+					return
+				}
+				muRun.Unlock()
 				log.Printf("error while accepting: %s", err)
 				return
 			}
@@ -65,11 +66,19 @@ func Start(listenPort string, mode int, num int) {
 	results := waitStop()
 	muRun.Lock()
 	running = false
-    muRun.Unlock()
-	log.Printf("NDTP server was stopped")
+	muRun.Unlock()
+	log.Printf("NDTP server has completed work")
 	for _, r := range results {
-		log.Printf("For connection %d: number received data packets = %d, sent %d control packets",
-			r.numConn, r.numReceive, r.numControl)
+		endingReceive := ""
+		isControl := ""
+		if r.numReceive > 1 {
+			endingReceive = "s"
+		}
+		if r.numControl == 1 {
+			isControl = ", sent 1 control packet"
+		}
+		log.Printf("For connection %d: received %d data packet"+endingReceive+isControl,
+			r.numConn, r.numReceive)
 	}
 }
 
