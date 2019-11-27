@@ -106,15 +106,14 @@ func handleConnection(conn net.Conn, connNo uint64, mode int, num int) {
 		closeConn <- res
 		return
 	}
-	if mode == 1 {
-		err = sendControlPacket(conn, &res)
-		if err != nil {
-			closeConn <- res
-			return
-		}
-	}
 	receiveData(conn, connNo, num, &res)
-	time.Sleep(5 * time.Second)
+	if mode == 1 {
+    		err = sendControlPacket(conn, &res)
+    		if err != nil {
+    			closeConn <- res
+    			return
+    		}
+    	}
 	closeConn <- res
 }
 
