@@ -177,6 +177,7 @@ func receiveData(conn net.Conn, connNo uint64, numPacketsToReceive int, res *Res
 			log.Printf("can't get data from connection %d: %v", connNo, err)
 			break
 		}
+		log.Printf("read n byte: %d",n)
 		restBuf = append(restBuf, buf[:n]...)
 		for len(restBuf) != 0 {
 			parsedPacket := new(ndtp.Packet)
@@ -196,6 +197,7 @@ func receiveData(conn net.Conn, connNo uint64, numPacketsToReceive int, res *Res
 			log.Printf("send reply: %s", parsedPacket.String())
 		}
 	}
+	log.Printf("finish receive numReceive: %d",res.numReceive)
 }
 
 func send(conn net.Conn, packet []byte) error {
