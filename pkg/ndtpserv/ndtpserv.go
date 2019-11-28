@@ -114,6 +114,7 @@ func handleConnection(conn net.Conn, connNo uint64, mode int, num int) {
     			return
     		}
     	}
+	time.Sleep(5 * time.Second)
 	closeConn <- res
 }
 
