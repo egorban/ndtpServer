@@ -1,8 +1,6 @@
-Для демонстрации работы tcpmirror в связке с egtsServ и ndtpClient
+Эмулятор ndtp сервера для tcpmirror
 
 example run: 
-go run main.go -p "9001" -m 0 -n 100
+go run main.go -p "9001"
 
 -p - порт, на котором слушаются соединения
--m - режим (1 - мастер)
--n - количество пакетов для получения
