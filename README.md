@@ -1,3 +1,5 @@
+Для демонстрации работы tcpmirror в связке с egtsServ и ndtpClient
+
 example run: 
 go run main.go -p "9001" -m 0 -n 100
 
