@@ -1,4 +1,4 @@
-Эмулятор ndtp сервера для tcpmirror
+Эмулятор ndtp сервера для тестирования tcpmirror
 
 example run: 
 go run main.go -p "9001"
