@@ -1,4 +1,4 @@
-Для демонстрации tcpmirror (redmine_3452)
+Эмулятор ndtp сервера для демонстрации tcpmirror (redmine_3452) в связке с ndtpClient и egtsServ
 
 example run: 
 go run main.go -p "9001" -m 0 -n 100
