@@ -38,14 +38,14 @@ func Start(listenAddress string) {
 }
 
 func handleConnection(conn net.Conn, connNo uint64) {
-	err := waitFirstMessage(conn)
+	id, err := waitFirstMessage(conn)
 	if err != nil {
 		return
 	}
-	receiveData(conn, connNo)
+	receiveData(id, conn, connNo)
 }
 
-func waitFirstMessage(conn net.Conn) (err error) {
+func waitFirstMessage(conn net.Conn) (id int, err error) {
 	err = conn.SetReadDeadline(time.Now().Add(readTimeout))
 	if err != nil {
 		log.Printf("can't set read deadline %s", err)
@@ -63,6 +63,7 @@ func waitFirstMessage(conn net.Conn) (err error) {
 		log.Printf("can't parse first message from client: %s", err)
 		return
 	}
+	id, err = parsedPacket.GetID()
 	log.Printf("parsed first message: %v", parsedPacket.String())
 	reply := parsedPacket.Reply(ndtp.NphResultOk)
 	err = send(conn, reply)
@@ -74,36 +75,47 @@ func waitFirstMessage(conn net.Conn) (err error) {
 	return
 }
 
-func receiveData(conn net.Conn, connNo uint64) {
+func receiveData(id int, conn net.Conn, connNo uint64) {
+	num := 0
+	ticker := time.NewTicker(60 * time.Second)
+	defer ticker.Stop()
 	var restBuf []byte
 	for {
-		err := conn.SetReadDeadline(time.Now().Add(readTimeout))
-		if err != nil {
-			log.Printf("can't set read deadline %s", err)
-		}
-		var buf [defaultBufferSize]byte
-		n, err := conn.Read(buf[:])
-		if err != nil {
-			log.Printf("can't get data from connection %d: %v", connNo, err)
-			break
-		}
-		log.Printf("read n byte: %d", n)
-		restBuf = append(restBuf, buf[:n]...)
-		for len(restBuf) != 0 {
-			parsedPacket := new(ndtp.Packet)
-			restBuf, err = parsedPacket.Parse(restBuf)
+		select {
+		case <-ticker.C:
+			log.Printf("%v - %v", id, num)
+			num = 0
+		default:
+			err := conn.SetReadDeadline(time.Now().Add(readTimeout))
 			if err != nil {
-				log.Printf("error while parsing NDTP: %v", err)
+				log.Printf("can't set read deadline %s", err)
+			}
+			var buf [defaultBufferSize]byte
+			n, err := conn.Read(buf[:])
+			if err != nil {
+				log.Printf("can't get data from connection %d: %v", connNo, err)
 				break
 			}
-			log.Printf("receive ndtp packet: %s", parsedPacket.String())
-			reply := parsedPacket.Reply(ndtp.NphResultOk)
-			err = send(conn, reply)
-			if err != nil {
-				log.Printf(" error while send response to %d: %v", connNo, err)
-				break
+			log.Printf("read n byte: %d", n)
+			restBuf = append(restBuf, buf[:n]...)
+			for len(restBuf) != 0 {
+				parsedPacket := new(ndtp.Packet)
+				restBuf, err = parsedPacket.Parse(restBuf)
+				if err != nil {
+					log.Printf("error while parsing NDTP: %v", err)
+					break
+				}
+				num++
+				log.Printf("receive ndtp packet: %s", parsedPacket.String())
+				reply := parsedPacket.Reply(ndtp.NphResultOk)
+				err = send(conn, reply)
+				if err != nil {
+					log.Printf(" error while send response to %d: %v", connNo, err)
+					break
+				}
+				log.Printf("send reply: %s", parsedPacket.String())
 			}
-			log.Printf("send reply: %s", parsedPacket.String())
+
 		}
 	}
 }
