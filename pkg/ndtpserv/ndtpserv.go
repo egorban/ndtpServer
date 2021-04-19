@@ -43,7 +43,7 @@ func Start(listenAddress string) {
 		}
 		defer c.Close()
 		log.Printf("accepted connection %d (%s <-> %s)", connNo, c.RemoteAddr(), c.LocalAddr())
-		//go handleConnection(c, connNo)
+		go handleConnection(c, connNo)
 		connNo++
 	}
 }
